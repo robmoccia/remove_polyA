@@ -2,6 +2,7 @@ import argparse
 import os
 import itertools
 import subprocess
+import multiprocessing as mp
 
 def remove_polyA_tail( inName, length, min_length ):
     '''
@@ -65,12 +66,23 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = '')
     parser.add_argument( '-l', '--length', type = int, required = True, default = 10,
         help = 'minimum length of polyA stretch to define a polyA tail' )
-    parser.add_argument( 'input',
-        help = 'path to the input fastq file' )
+    parser.add_argument( 'directory',
+        help = 'directory containing fastq.gz files to process' )
     parser.add_argument( '-m', '--min_length', type  = int, required = True, default = 20,
         help = 'minimum length of read after trimming, otherwise read is discarded' )
 
     args = parser.parse_args()
-    remove_polyA_tail( inName = args.input, length = args.length, min_length = args.min_length )
+
+    fastq_files = [ file for file in os.listdir(args.directory) if file.endswith('.fastq.gz') ]
+    jobs = []
+    for fq in fastq_files:
+        p = mp.Process( target = remove_polyA_tail, args = (fq, ),
+                        kwargs = { 'length': args.length,
+                                    'min_length': args.min_length } )
+        jobs.append(p)
+        p.start()
+
+    for job in jobs:
+        job.join()
 
 
