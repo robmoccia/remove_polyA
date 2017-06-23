@@ -63,7 +63,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = '')
     parser.add_argument( '-l', '--length', type = int, required = True, default = 10,
         help = 'minimum length of polyA stretch to define a polyA tail' )
-    parser.add_argument( '-i', '--input', required = True,
+    parser.add_argument( 'input',
         help = 'path to the input fastq file' )
     parser.add_argument( '-m', '--min_length', type  = int, required = True, default = 20,
         help = 'minimum length of read after trimming, otherwise read is discarded' )
