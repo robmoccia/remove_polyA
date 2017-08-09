@@ -3,6 +3,7 @@ import os
 import itertools
 import subprocess
 import multiprocessing as mp
+import json
 
 def remove_polyA_tail( inName, length, min_length ):
     '''
@@ -24,11 +25,12 @@ def remove_polyA_tail( inName, length, min_length ):
     polyA = 'A' * length
 
     # generate a filename for the output file and a log file
-    directory, file = os.path.split(inName)
-    basename = file.strip('.fastq.gz')
+    directory, fname = os.path.split(inName)
+    if fname.endswith('.fastq.gz'):
+        basename = fname[:-len('.fastq.gz')]
     outName = os.path.join( directory, 
         basename + '.polyA_trimmed.fastq' )
-    logName = os.path.join( directory, basename + '.polyA_trim.log' )
+    logName = os.path.join( directory, basename + '.polyA_trim_log.json' )
 
     with open( outName, 'w' ) as outFile:
         with os.popen( 'zcat ' + inName, 'r' ) as inFile:
@@ -54,16 +56,17 @@ def remove_polyA_tail( inName, length, min_length ):
                     outFile.write( ''.join(record) )
 
     subprocess.run( [ 'gzip', '-f', outName ] )
-    with open( logName, 'w' ) as log:
-        log.write( 'Settings:\n' )
-        log.write( '\tlength to define polyA tail: {}\n'.format( length ) )
-        log.write( '\tminimum length to retain read: {}\n\n'.format( min_length ) )
-        log.write( 'Reads processed: {}\n'.format(num_processed) )
-        log.write( 'Reads trimmed: {}\n'.format(num_trimmed) )
-        log.write( 'Percent reads trimmed: {}%\n'.format( round( num_trimmed/num_processed * 100, 1 ) ) )
-        log.write( 'Reads removed (too short): {}\n'.format(num_too_short) )
-        log.write( 'Percent reads removed (too short): {}%\n'.format( round( num_too_short/num_processed * 100, 1 ) ) )
 
+    with open( logName, 'w' ) as log:
+        json.dump( { 'file': fname,
+                     'settings': { 'length': length, 'min_length': min_length },
+                     'records_processed': num_processed,
+                     'records_trimmed': num_trimmed,
+                     'percent_trimmed': round( num_trimmed/num_processed * 100, 1 ),
+                     'records_removed': num_too_short,
+                     'percent_removed': round( num_too_short/num_processed * 100, 1 ) 
+                    },
+                    fp = log )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = '')
@@ -76,7 +79,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    fastq_files = [ file for file in os.listdir(args.directory) if file.endswith('.fastq.gz') ]
+    fastq_files = [ file for file in os.listdir(args.directory) if file.endswith('.fastq.gz') and 'polyA_trimmed' not in file ]
     jobs = []
     for fq in fastq_files:
         p = mp.Process( target = remove_polyA_tail, args = (fq, ),
