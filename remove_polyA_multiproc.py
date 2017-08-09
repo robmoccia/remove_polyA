@@ -55,6 +55,9 @@ def remove_polyA_tail( inName, length, min_length ):
 
     subprocess.run( [ 'gzip', '-f', outName ] )
     with open( logName, 'w' ) as log:
+        log.write( 'Settings:\n' )
+        log.write( '\tlength to define polyA tail: {}\n'.format( length ) )
+        log.write( '\tminimum length to retain read: {}\n\n'.format( min_length ) )
         log.write( 'Reads processed: {}\n'.format(num_processed) )
         log.write( 'Reads trimmed: {}\n'.format(num_trimmed) )
         log.write( 'Percent reads trimmed: {}%\n'.format( round( num_trimmed/num_processed * 100, 1 ) ) )
