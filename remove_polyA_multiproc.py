@@ -1,9 +1,22 @@
+#!/usr/bin/env python
+
+"""
+Simple script to trim polyA stretches of a specified length from fastq.gz files
+"""
+
 import argparse
 import os
 import itertools
 import subprocess
 import multiprocessing as mp
 import json
+
+__author__ = 'Rob Moccia'
+__version__ = '0.1'
+__maintainer__ = 'Rob Moccia'
+__email__ = 'robert.moccia@pfizer.com'
+__status__ = "Development"
+
 
 def remove_polyA_tail( inName, length, min_length ):
     '''
