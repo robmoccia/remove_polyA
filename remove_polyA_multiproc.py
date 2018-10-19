@@ -94,6 +94,7 @@ if __name__ == '__main__':
 
     fastq_files = [ file for file in os.listdir(args.directory) if file.endswith('.fastq.gz') and 'polyA_trimmed' not in file ]
     jobs = []
+    os.chdir(args.directory)
     for fq in fastq_files:
         p = mp.Process( target = remove_polyA_tail, args = (fq, ),
                         kwargs = { 'length': args.length,
